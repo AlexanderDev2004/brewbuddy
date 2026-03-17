@@ -29,6 +29,13 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="my-resep"
+        options={{
+          title: 'My Resep',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="scroll.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="explore"
         options={{
           title: 'Explore',
