@@ -1,0 +1,8 @@
+export enum BrewMethod {
+  V60 = 'V60',
+  JAPANESE_ICED = 'JAPANESE_ICED',
+  AEROPRESS = 'AEROPRESS',
+  FRENCH_PRESS = 'FRENCH_PRESS',
+  ESPRESSO = 'ESPRESSO',
+  OTHER = 'OTHER',
+}
