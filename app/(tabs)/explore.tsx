@@ -1,112 +1,125 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { Link, type Href } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
+import { Pressable, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Collapsible } from '@/components/ui/collapsible';
-import { ExternalLink } from '@/components/external-link';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Fonts } from '@/constants/theme';
+import {
+  FALLBACK_RECIPES,
+  fetchRecipes,
+  getApiBaseUrl,
+  isAbortError,
+  mapRecipeToUI,
+  type RecipeInfo,
+} from '@/constants/recipe-data';
 
-export default function TabTwoScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText
-          type="title"
-          style={{
-            fontFamily: Fonts.rounded,
-          }}>
-          Explore
-        </ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image
-          source={require('@/assets/images/react-logo.png')}
-          style={{ width: 100, height: 100, alignSelf: 'center' }}
-        />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful{' '}
-          <ThemedText type="defaultSemiBold" style={{ fontFamily: Fonts.mono }}>
-            react-native-reanimated
-          </ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
-  );
+function recipeHref(id: string): Href {
+  return `/recipes/${id}` as Href;
 }
 
-const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-});
+export default function ExploreScreen() {
+  const apiBaseUrl = useMemo(() => getApiBaseUrl(), []);
+  const [recipes, setRecipes] = useState<RecipeInfo[]>(FALLBACK_RECIPES);
+  const [isLoading, setIsLoading] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [isUsingFallback, setIsUsingFallback] = useState(true);
+
+  useEffect(() => {
+    const abortController = new AbortController();
+
+    async function loadRecipes() {
+      setIsLoading(true);
+      setFetchError(null);
+
+      try {
+        const apiRecipes = await fetchRecipes(apiBaseUrl, abortController.signal);
+        const mappedRecipes = apiRecipes.map(mapRecipeToUI);
+
+        if (mappedRecipes.length === 0) {
+          setIsUsingFallback(true);
+          setRecipes(FALLBACK_RECIPES);
+          setFetchError('Belum ada resep komunitas. Menampilkan contoh resep default.');
+          return;
+        }
+
+        setIsUsingFallback(false);
+        setRecipes(mappedRecipes);
+      } catch (error) {
+        if (isAbortError(error)) {
+          return;
+        }
+
+        setIsUsingFallback(true);
+        setRecipes(FALLBACK_RECIPES);
+        setFetchError(`Gagal memuat backend di ${apiBaseUrl}. Menampilkan contoh resep default.`);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    void loadRecipes();
+
+    return () => {
+      abortController.abort();
+    };
+  }, [apiBaseUrl]);
+
+  return (
+    <SafeAreaView className="flex-1 bg-brew-main">
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 24 }}>
+        <View className="border-b border-b-brew-border bg-brew-alt px-5 py-4">
+          <Text className="font-interSemi text-[13px] tracking-tight text-brew-text">Brewbuddy</Text>
+          <Text className="mt-1 font-interMedium text-[28px] leading-[32px] tracking-[-1px] text-brew-text">
+            Jelajahi Resep
+          </Text>
+          <Text className="mt-2 font-inter text-sm leading-5 text-brew-muted">
+            Pilih resep komunitas lalu buka detail lengkap untuk ikuti langkah seduhnya.
+          </Text>
+
+          <Text className="mt-4 font-interSemi text-[10px] uppercase tracking-[1px] text-brew-muted">
+            {isUsingFallback ? 'Mode Demo (Local)' : 'Data Backend Aktif'}
+          </Text>
+
+          {isLoading ? (
+            <Text className="mt-2 font-inter text-sm leading-5 text-brew-muted">
+              Memuat daftar resep...
+            </Text>
+          ) : null}
+
+          {fetchError ? (
+            <Text className="mt-2 font-inter text-sm leading-5 text-brew-muted">{fetchError}</Text>
+          ) : null}
+        </View>
+
+        <View>
+          {recipes.map((recipe, index) => (
+            <Link key={recipe.id} href={recipeHref(recipe.id)} asChild>
+              <Pressable
+                className="bg-brew-main px-5 py-5"
+                style={{ borderBottomColor: '#CDCDCD', borderBottomWidth: 1 }}>
+                <View className="flex-row items-start justify-between">
+                  <View className="mr-4 flex-1">
+                    <Text className="font-interSemi text-[10px] uppercase tracking-[1px] text-brew-muted">
+                      Resep {index + 1}
+                    </Text>
+                    <Text className="mt-2 font-interMedium text-[20px] leading-6 text-brew-text">
+                      {recipe.title}
+                    </Text>
+                    <Text className="mt-1 font-inter text-sm text-brew-muted">{recipe.tab}</Text>
+                    <Text className="mt-2 font-inter text-[15px] leading-6 text-brew-text">
+                      {recipe.description}
+                    </Text>
+                  </View>
+
+                  <View className="mt-1 h-6 w-6 items-center justify-center rounded-full bg-brew-text">
+                    <MaterialIcons color="#FFFFFF" name="arrow-forward" size={14} />
+                  </View>
+                </View>
+              </Pressable>
+            </Link>
+          ))}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
