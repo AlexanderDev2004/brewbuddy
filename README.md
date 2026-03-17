@@ -1,50 +1,200 @@
-# Welcome to your Expo app 👋
+# BrewBuddy
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+BrewBuddy is an app for coffee beginners who are confused about which recipe to start with.
+Users can discover practical brew recipes (for example V60 or Japanese iced coffee), then share
+their own recipes so others can follow and try them.
 
-## Get started
+## Product Goals
 
-1. Install dependencies
+- Beginner-first guidance with clear, practical brewing steps.
+- Recipe data must be measurable (grams, ml, seconds, temperature when relevant).
+- Community recipe sharing so users can copy, follow, and learn from each other.
 
-   ```bash
-   npm install
-   ```
+## Tech Stack
 
-2. Start the app
+- Frontend: Expo + React Native + React 19 + expo-router
+- Styling: NativeWind (Tailwind-style utilities)
+- Backend: NestJS (TypeScript)
+- Database: PostgreSQL
+- Active database name: `brewbuddy`
+- Package manager: npm
 
-   ```bash
-   npx expo start
-   ```
+## Prerequisites
 
-In the output, you'll find options to open the app in a
+- Node.js 20+ (recommended)
+- npm 10+ (recommended)
+- PostgreSQL running locally
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Quick Start
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+Run all commands from repo root: `D:\Devoloper\brewbuddy`
 
-## Get a fresh project
-
-When you're ready, run:
+1) Install frontend/root dependencies:
 
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+2) Install backend dependencies:
 
-## Learn more
+```bash
+npm run backend:install
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+3) Create PostgreSQL database:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```sql
+CREATE DATABASE brewbuddy;
+```
 
-## Join the community
+4) Create backend env file:
 
-Join our community of developers creating universal apps.
+Windows CMD:
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```bash
+copy backend\.env.example backend\.env
+```
+
+PowerShell:
+
+```bash
+Copy-Item backend/.env.example backend/.env
+```
+
+macOS/Linux:
+
+```bash
+cp backend/.env.example backend/.env
+```
+
+5) Start apps in separate terminals:
+
+Terminal A (frontend):
+
+```bash
+npm run start
+```
+
+Terminal B (backend):
+
+```bash
+npm run backend:start
+```
+
+Backend base URL: `http://localhost:3001/api`
+
+## Main Scripts
+
+### Frontend (root)
+
+```bash
+npm run start
+npm run android
+npm run ios
+npm run web
+npm run lint
+npx tsc --noEmit
+```
+
+### Backend (from root)
+
+```bash
+npm run backend:install
+npm run backend:start
+npm run backend:lint
+npm run backend:typecheck
+npm run backend:test
+```
+
+### Backend (inside `backend/`)
+
+```bash
+npm run start:dev
+npm run lint
+npm run typecheck
+npm run test
+npm run test:e2e
+npm run build
+npm run start:prod
+```
+
+## API Overview
+
+Base prefix: `/api`
+
+- `GET /api` - health check
+- `GET /api/recipes` - list shared recipes
+- `GET /api/recipes/:id` - get recipe detail
+- `POST /api/recipes` - create recipe
+- `DELETE /api/recipes/:id` - delete recipe
+
+Example create recipe payload:
+
+```json
+{
+  "title": "V60 Beginner 1 Cup",
+  "brewMethod": "V60",
+  "description": "Resep V60 ringan untuk pemula.",
+  "coffeeGrams": 15,
+  "waterMl": 240,
+  "grindSize": "medium-fine",
+  "brewTimeSeconds": 150,
+  "steps": [
+    "Bilas paper filter dengan air panas.",
+    "Masukkan kopi 15g lalu ratakan.",
+    "Bloom 30 detik dengan 40ml air.",
+    "Tuang sisa air perlahan sampai 240ml.",
+    "Selesai sekitar 2:30 menit."
+  ],
+  "authorName": "BrewBuddy User"
+}
+```
+
+## Testing
+
+Frontend:
+
+- No frontend test framework is configured yet.
+
+Backend:
+
+```bash
+npm --prefix backend run test
+```
+
+Single backend test file:
+
+```bash
+npm --prefix backend run test -- src/app.controller.spec.ts
+```
+
+Single backend test by name:
+
+```bash
+npm --prefix backend run test -- src/app.controller.spec.ts -t "should return health payload"
+```
+
+Backend e2e tests:
+
+```bash
+npm --prefix backend run test:e2e
+```
+
+## Project Structure
+
+```text
+app/                Expo routes (frontend)
+components/         Shared frontend UI
+hooks/              Frontend hooks
+constants/          Frontend constants/theme
+assets/             Static assets
+backend/src/        NestJS source code
+backend/test/       Backend e2e tests/config
+scripts/            Utility scripts
+```
+
+## Notes
+
+- Backend uses PostgreSQL config from `backend/.env`.
+- Default DB name is `brewbuddy`.
+- `DB_SYNCHRONIZE=true` is convenient for local dev; use `false` for production.

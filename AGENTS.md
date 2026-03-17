@@ -10,6 +10,7 @@ Guidance for agentic coding assistants working in this repository.
 
 ## Project Snapshot
 - Frontend: Expo + React Native + React 19
+- Styling: NativeWind (Tailwind-style utilities) + `global.css`
 - Backend: NestJS (TypeScript)
 - Database: PostgreSQL
 - Active DB name: `brewbuddy`
@@ -20,6 +21,7 @@ Guidance for agentic coding assistants working in this repository.
 
 ## Repository Layout
 - `app/`, `components/`, `hooks/`, `constants/`, `assets/`: Expo frontend
+- `tailwind.config.js`, `global.css`, `metro.config.js`, `babel.config.js`: NativeWind/Tailwind config
 - `backend/src/`: NestJS API source
 - `backend/test/`: backend e2e test config/files
 - `scripts/`: utility scripts for frontend template/reset

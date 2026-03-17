@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-main: #ebebeb;
+  --bg-alt: #dfdfdf;
+  --accent: #fd4040;
+  --text-main: #141414;
+  --text-muted: #7a7a7a;
+  --border-color: #cdcdcd;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-main);
+  color: var(--text-main);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
